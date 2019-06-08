@@ -3,7 +3,10 @@ const express = require("express");
 const morgan = require("morgan");
 const Promise = require("promise");
 const cors = require("cors");
+
 const swaggerUi = require('swagger-ui-express');
+const swaggerJSDoc = require('swagger-jsdoc');
+
 
 // App calling
 const app = new express();
