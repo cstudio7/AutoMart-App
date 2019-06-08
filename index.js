@@ -16,4 +16,4 @@ app.use(require('./routes/index.routes'));
 app.use(cors());
 
 // Port listen
-app.listen("3000");
+module.exports = app.listen("3000");
