@@ -11,7 +11,6 @@ const server = require('../index');
 
 chai.use(chaiHttp);
 
-
 describe('GET all cars', () => {
   it('should get all the cars', (done) => {
     chai.request(server)
@@ -52,19 +51,6 @@ describe('GET just one car', () => {
       })
   })
 });
-
-
-describe('GET all Orders', () => {
-    chai.request(server)
-      .get('/api/v1/order')
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        done();
-      })
-  })
-})
-
 
 
 describe('POST car with body', () => {
