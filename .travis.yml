@@ -5,13 +5,7 @@ node_js:
 cache:
   directories:
     - "node_modules"
-   branches:
-  only:
-  - develop
-before_install:
-- npm update
-install:
-- npm install
-script:
-- npm test
-- npm run coverage
+    script:
+        - npm test
+        - npm run coverage
+        
