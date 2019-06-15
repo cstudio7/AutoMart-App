@@ -1,18 +1,17 @@
 
-
-sudo: false
-dist: trusty
 language: node_js
-node_js:
-- 8.11.1
+node_js: 
+  - "stable"
 cache:
   directories:
-  - node_modules
+    - "node_modules"
+   branches:
+  only:
+  - develop
 before_install:
-- curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.6.0
-- export PATH="$HOME/.yarn/bin:$PATH"
-before_script:
-- yarn install
+- npm update
+install:
+- npm install
 script:
-- yarn test-single
-after_success: yarn coverage
+- npm test
+- npm run coverage
