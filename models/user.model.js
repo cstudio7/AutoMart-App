@@ -171,7 +171,6 @@ const deleteUser = (id) => {
     })
 };
 
-
 module.exports = {
     getUser,
     getUsers,
