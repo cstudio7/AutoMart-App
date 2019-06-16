@@ -360,3 +360,22 @@ describe('Login API', () => {
 // "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha",
 
 
+// Login a user
+describe('login a new user', () => {
+  it('should login a user successfully', (done) => {
+    const user = {
+      id: 1,
+      email: 'kingsconsult@gmail.com',
+      password: helper.passwordHash("p@ssw0rd"),
+    };
+    chai.request(server)
+    .post('/api/v1/user/auth/signin')
+    .send(user)
+    .end((err, res) => {
+      res.should.have.status(401);
+      res.body.should.be.a('object');
+      res.body.should.have.property('error');
+      done();
+    });
+  });
+});
