@@ -1,13 +1,10 @@
 language: node_js
 node_js:
   - '10.15.3'
-
 cache:
-  directories:
+directories:
     - "node_modules"
-
-    script:
-        - npm test
-        
-  after_success:
+script:
+  - npm test
+after_success:
   - npm run coverage
