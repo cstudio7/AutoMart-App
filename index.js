@@ -4,12 +4,9 @@ const morgan = require("morgan");
 const Promise = require("promise");
 const cors = require("cors");
 
-const swaggerUi = require('swagger-ui-express');
-const swaggerJSDoc = require('swagger-jsdoc');
-
-
 // App calling
 const app = new express();
+const PORT = process.env.PORT || 3000;
 
 // App usage
 app.use(morgan("tiny"));
@@ -20,4 +17,4 @@ app.use(require('./routes/index.routes'));
 app.use(cors());
 
 // Port listen
-app.listen("3000");
+module.exports = app.listen(PORT);

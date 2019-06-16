@@ -20,6 +20,7 @@ const passwordCompare = async (password, hash) => {
     }
 };
 
+
 // Increment ID automatically
 const getNewId = (array) => {
     if (array.length > 0) {
@@ -35,20 +36,48 @@ const newDate = () => new Date().toString();
 // Check if ID is in data store
 const mustBeInArray = (array, id) => {
     return new Promise((resolve, reject) => {
-
         const row = array.find(r => r.id == id);
-
         if (!row) {
             reject({
                 message: `The id ${id} does not exist in the database`,
                 status: 404
-            });
+            })
         }
         resolve(row);
     })
 };
 
+const emailExistsInArray = (array, email, password) => {
+    return new Promise((resolve, reject) => {
 
+        if (email && password) {
+
+            const row = array.filter(r => r.email === email && r.password === password);
+
+            if (row.length === 0) {
+                reject({
+                    message: `The user does not exist in the database`,
+                    status: 404
+                })
+            }
+
+            resolve(row);
+        }
+
+    });
+};
+
+// Format currency
+const currencyFormatter = () => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+});
+
+const tokenGenerator = (text) => {
+    const token = hasha(text);
+    return token.slice(0, 40);
+};
 const findAvailableCarsInArray = (array, status, min_price, max_price) => {
     return new Promise((resolve, reject) => {
 
@@ -82,47 +111,14 @@ const findAvailableCarsInArray = (array, status, min_price, max_price) => {
 };
 
 
-const emailExistsInArray = (array, email, password) => {
-    return new Promise((resolve, reject) => {
-
-        if (email && password) {
-
-            const row = array.filter(r => r.email === email && r.password === password);
-
-            if (row.length === 0) {
-                reject({
-                    message: `The user does not exist in the database`,
-                    status: 404
-                })
-            }
-
-            resolve(row);
-        }
-
-    });
-};
-
-
-// Format currency
-const currencyFormatter = () => new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2
-});
-
-const tokenGenerator = (text) => {
-    const token = hasha(text);
-    return token.slice(0, 40);
-};
-
 // Export everything for use elsewhere
 module.exports = {
     getNewId,
     newDate,
     mustBeInArray,
     currencyFormatter,
-    passwordHash,
     passwordCompare,
+    passwordHash,
     tokenGenerator,
     emailExistsInArray,
     findAvailableCarsInArray

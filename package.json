@@ -5,15 +5,19 @@
   "main": "index.js",
   "scripts": {
     "dev": "node_modules/.bin/nodemon -e js",
-    "test": "mocha",
-    "start": "node_modules/.bin/nodemon -e js"
-    "test" : "jest --coverage"
-    "test:coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha",
+    "start": "node_modules/.bin/nodemon -e js",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/register": "^7.4.4",
     "coveralls": "^3.0.4",
     "mocha": "^6.1.4",
     "morgan": "^1.9.1",
@@ -21,10 +25,15 @@
   },
   "dependencies": {
     "bcrypt": "^3.0.6",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "hasha": "^5.0.0",
+    "nyc": "^14.1.1",
     "promise": "^8.0.3",
+    "request": "^2.88.0",
+    "supertest": "^4.0.2",
     "swagger-jsdoc": "^3.2.9",
     "swagger-ui-express": "^4.0.6"
   }
