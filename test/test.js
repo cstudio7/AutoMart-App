@@ -14,17 +14,7 @@ const server = require('../index');
 
 chai.use(chaiHttp);
 
-describe('GET all cars', () => {
-  it('should get all the cars', (done) => {
-    chai.request(server)
-      .get('/api/v1/car')
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('array');
-        done();
-      })
-  })
-// })
+
 
 
 
@@ -46,7 +36,7 @@ describe('GET all order', () => {
       .get('/api/v1/order')
       .end((err, res) => {
         res.should.have.status(200);
-        res.body.should.be.a('object');
+        res.body.should.be.a('array');
         done();
       })
   })
