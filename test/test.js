@@ -30,3 +30,17 @@ describe('GET all users', () => {
 })
 
 
+describe('POST car without any body', () => {
+  it('should return an error 400', (done) => {
+    let newCar = {};
+    chai.request(server)
+      .post('/api/v1/car')
+      .send(newCar)
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        done();
+
+      })
+  })
+})
