@@ -91,58 +91,6 @@ describe('GET a specific car', () => {
 });
 
 
-describe('POST car with body', () => {
-  it('it should POST a new car successfully', (done) => {
-    let newCar = {
-      id: 1,
-      owner: 23,
-      created_on: helper.newDate(),
-      state: "new",
-      status: "available",
-      price: helper.currencyFormatter().format(567.98),
-      manufacturer: "Toyota",
-      model: "corolla",
-      body_type: "saloon"
-    };
-    chai.request(server)
-      .post('/api/v1/car')
-      .send(newCar)
-      .end((err, res) => {
-        res.should.have.status(201);
-        res.body.should.be.a('object');
-        res.body.should.have.property('content');
-        res.body.content.should.have.property('model');
-        res.body.content.should.have.property('state').eql('new');
-        done();
-      });
-  });
-});
-
-
-describe('POST an order with body', () => {
-  it('it should POST a new order successfully', (done) => {
-    let newOrder = {
-        //dummy values for testing
-        "id": 1,
-        "buyer": 14,
-        "car_id": 245,
-        "amount": 3456789,
-        "status": "pending",
-        "date": helper.newDate()
-    };
-    chai.request(server)
-      .post('/api/v1/order')
-      .send(newOrder)
-      .end((err, res) => {
-        res.should.have.status(201);
-        res.body.should.be.a('object');
-        res.body.data.should.have.property('buyer');
-        res.body.data.should.have.property('status');
-        res.body.data.should.have.property('status')
-        done();
-      })
-  })
-})
 
 
 
@@ -173,62 +121,6 @@ describe('POST a user with body', () => {
       })
   })
 })
-
-describe('patch', () => {
-  it('it should update a car given an id', (done) => {
-    let car =  {
-        //dummy values for testing
-        "id": 1,
-        "owner": 23,
-        "created_on": helper.newDate(),
-        "state": "new",
-        "status": "available",
-        "price": 8982.85,
-        "manufacturer": "Mercedes Benz",
-        "model": "C300",
-        "body_type": "car"
-    }
-      chai.request(server)
-       .patch('/api/v1/car/1/status')
-       .send( car = {
-        "id" : 1,
-        "status": "sold"
-       })
-       .end((err, res) => {
-        res.should.have.status(202);
-        res.body.should.be.a('object');
-        done();
-       })
-    })
-  })
-
-//Update the car price
-describe('patch', () => {
-  it('it should update a car given an id', (done) => {
-    let car =  {
-        //dummy values for testing
-        "id": 1,
-        "owner": 23,
-        "created_on": helper.newDate(),
-        "state": "new",
-        "status": "available",
-        "price": 8982.85,
-        "manufacturer": "Mercedes Benz",
-        "model": "C300",
-        "body_type": "car"
-    }
-      chai.request(server)
-       .patch('/api/v1/car/1/price')
-       .send( car = {
-        "price" : 10.45
-       })
-       .end((err, res) => {
-        res.should.have.status(202);
-        res.body.should.be.a('object');
-        done();
-       })
-    })
-  })
 
 //Update user
 describe('put', () => {
