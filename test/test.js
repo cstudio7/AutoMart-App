@@ -1,4 +1,3 @@
-'use strict';
 
 const app = require('../index');
 const car = require('../models/car.model');
