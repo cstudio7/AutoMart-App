@@ -320,22 +320,6 @@ describe('delete user', () => {
  
   
 
-describe('Login API', () => {
-  it('it should sucsess if credential is valid', (done) => {
-    let user = {
-      email: "johndoe@email.com",
-      password:"12345"
-    }
-   chai.request(server)
-   .post('/api/v1/user/auth/signin')
-   .send('user')
-   .end((err, res) => {
-       
-        done();
-       })
-  });
- });
-
 // Login a user
 describe('login a new user', () => {
   it('should login a user successfully', (done) => {
