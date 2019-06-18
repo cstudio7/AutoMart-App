@@ -1,3 +1,4 @@
+'use strict';
 
 const app = require('../index');
 const car = require('../models/car.model');
@@ -7,17 +8,25 @@ const helper = require('../helpers/helper.js');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const should = chai.should();
-const expect = chai.expect();
 const server = require('../index');
-
+const { expect } = chai;
 
 chai.use(chaiHttp);
 
+//describe('GET all cars', () => {
+  it('should get all the cars', (done) => {
+    chai.request(server)
+      .get('/api/v1/car')
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+        done();
+      })
+  })
 
 
 
-
-describe('GET all users', () => {
+describe('GET all users', () => {                       //1
   it('should get all the users', (done) => {
     chai.request(server)
       .get('/api/v1/user')
@@ -29,8 +38,19 @@ describe('GET all users', () => {
   })
 })
 
+describe('GET all order', () => {
+  it('should get all the orders', (done) => {
+    chai.request(server)
+      .get('/api/v1/order')
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        done();
+      })
+  })
+})
 
-describe('POST car without any body', () => {
+describe('POST car without any body', () => {   //2
   it('should return an error 400', (done) => {
     let newCar = {};
     chai.request(server)
@@ -44,7 +64,6 @@ describe('POST car without any body', () => {
       })
   })
 })
-
 
 describe('POST order without any body', () => {
   it('should return an error 400', (done) => {
@@ -91,6 +110,58 @@ describe('GET a specific car', () => {
 });
 
 
+describe('POST car with body', () => {
+  it('it should POST a new car successfully', (done) => {
+    let newCar = {
+      id: 1,
+      owner: 23,
+      created_on: helper.newDate(),
+      state: "new",
+      status: "available",
+      price: helper.currencyFormatter().format(567.98),
+      manufacturer: "Toyota",
+      model: "corolla",
+      body_type: "saloon"
+    };
+    chai.request(server)
+      .post('/api/v1/car')
+      .send(newCar)
+      .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a('object');
+        res.body.should.have.property('content');
+        res.body.content.should.have.property('model');
+        res.body.content.should.have.property('state').eql('new');
+        done();
+      });
+  });
+});
+
+
+describe('POST an order with body', () => {
+  it('it should POST a new order successfully', (done) => {
+    let newOrder = {
+        //dummy values for testing
+        "id": 1,
+        "buyer": 14,
+        "car_id": 245,
+        "amount": 3456789,
+        "status": "pending",
+        "date": helper.newDate()
+    };
+    chai.request(server)
+      .post('/api/v1/order')
+      .send(newOrder)
+      .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a('object');
+        res.body.data.should.have.property('buyer');
+        res.body.data.should.have.property('status');
+        res.body.data.should.have.property('status')
+        done();
+      })
+  })
+})
 
 
 
@@ -121,6 +192,62 @@ describe('POST a user with body', () => {
       })
   })
 })
+
+describe('patch', () => {
+  it('it should update a car given an id', (done) => {
+    let car =  {
+        //dummy values for testing
+        "id": 1,
+        "owner": 23,
+        "created_on": helper.newDate(),
+        "state": "new",
+        "status": "available",
+        "price": 8982.85,
+        "manufacturer": "Mercedes Benz",
+        "model": "C300",
+        "body_type": "car"
+    }
+      chai.request(server)
+       .patch('/api/v1/car/1/status')
+       .send( car = {
+        "id" : 1,
+        "status": "sold"
+       })
+       .end((err, res) => {
+        res.should.have.status(202);
+        res.body.should.be.a('object');
+        done();
+       })
+    })
+  })
+
+//Update the car price
+describe('patch', () => {
+  it('it should update a car given an id', (done) => {
+    let car =  {
+        //dummy values for testing
+        "id": 1,
+        "owner": 23,
+        "created_on": helper.newDate(),
+        "state": "new",
+        "status": "available",
+        "price": 8982.85,
+        "manufacturer": "Mercedes Benz",
+        "model": "C300",
+        "body_type": "car"
+    }
+      chai.request(server)
+       .patch('/api/v1/car/1/price')
+       .send( car = {
+        "price" : 10.45
+       })
+       .end((err, res) => {
+        res.should.have.status(202);
+        res.body.should.be.a('object');
+        done();
+       })
+    })
+  })
 
 //Update user
 describe('put', () => {
@@ -185,7 +312,7 @@ describe('/Post user', () => {
 })
 
 describe('delete user', () => {
-  it('it should update a user given an id', (done) => {
+  it('it should delete a user given an id', (done) => {
     let user = {
         //dummy values for testing
         "id": 1,
@@ -202,14 +329,40 @@ describe('delete user', () => {
    
      chai.request(server)
 .delete('/api/v1/user/1')
+.set('Accept', 'application/json')
  .send(user)
        .end((err, res) => {
-        res.should.have.status(200);
+        res.should.have.status(200);        
         done();
        })
     })
+   it('It should not delete a book with invalid id', (done) => {
+    const user =  {
+        //dummy values for testing
+        "id": 50
+    };
+    chai.request(server)
+.delete('/api/v1/user/50')
+      .set('Accept', 'application/json')
+      .end((err, res) => {
+        res.should.have.status(404);
+        done();
+      });
+  });
+    it('It should not delete a book with non-numeric id', (done) => {
+    const user =  {
+        //dummy values for testing
+        "id": "abc"
+    };
+    chai.request(server)
+      .delete(`/api/v1/user/abc`)
+      .set('Accept', 'application/json')
+      .end((err, res) => {
+        expect(res.status).to.equal(400);
+        done();
+      });
+  });
   })
- 
   
 
 // Login a user
