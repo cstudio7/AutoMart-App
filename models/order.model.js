@@ -1,56 +1,81 @@
-const express = require("express");
-const router = express.Router();
-const order = require("../models/order.model");
-const m = require("../helpers/middlewares");
+const Promise = require("promise");
+const helper = require("../helpers/helper.js");
 
-/* All Orders */
-router.get("/", async(req, res) => {
-    await order.getOrders()
+let orders = [
+    {
+        //dummy values for testing
+        "id": 1,
+        "buyer": 14,
+        "car_id": 245,
+        "amount": 3456789,
+        "status": "pending",
+        "date": helper.newDate()
+    }
+];
+
+const getOrders = () => {
+    return new Promise((resolve, reject) => {
+
+        if (orders.length === 0) {
+            reject({
+                message: "No Orders Available",
+                status: 202
+            })
+        }
+
+        resolve(orders);
+    })
+};
+
+const createOrder = (newOrder) => {
+    return new Promise((resolve, reject) => {
+        const id = {
+            id: helper.getNewId(orders)
+        };
+        const date = {
+            created_on: helper.newDate()
+        };
+        newOrder = { 
+            ...id, 
+            ...date, 
+            ...newOrder
+        };
+        orders.push(newOrder);
+        resolve(newOrder);
+    })
+};
+const updatePrice = (id, price) => {
+    return new Promise ((resolve, reject) => {
+        helper.mustBeInArray(orders, id)
         .then(order => {
-            res.status(200).json({
-                status: 200,
-                data: order
-            })
+            const index = orders.findIndex(p => p.id === order.id);
+            const id = { 
+                id: order.id 
+            };
+            const owner = {
+                owner: order.owner
+            };
+            const date = {
+                created_on: order.created_on,
+                updated_on: helper.newDate()
+            };
+
+            order.price = price;
+
+            orders[index] = { 
+                ...id, 
+                ...owner,
+                ...date, 
+                 };
+            resolve(orders);
         })
-        .catch(err => {
-            res.status(202).json({
-                status: 202,
-                error: {
-                    message: err.message
-                }
-            })
-        })
-});
+        .catch(err => reject(err))
+})
+};
 
 
-/* Create a car order */
-router.post("/", m.checkFieldPostOrder, async(req, res) => {
-    await order.createOrder(req.body)
-        .then(order => res.status(201).json({
-            status: 201,
-            data: order
-        }))
-        .catch(err => res.status(500).json({
-            message: err.message
-        }))
-});
-
-// update the price of a purchase order
-router.patch('/:id/price', m.mustBeInteger, async (req, res) => {
-    const id = req.params.id;
-    
-    const price = req.body.price;
-
-    await order.updatePrice(id, price)
-    .then(order => res.json({
-        price: 202,
-        data: order
-    }))
-    .catch()
-});
-
-
-
-
-// Routes
-module.exports = router;
+module.exports = {
+    createOrder,
+    getOrders,
+    updatePrice,
+};
