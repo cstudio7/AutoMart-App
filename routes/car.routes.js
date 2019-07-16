@@ -1,168 +1,144 @@
-const express = require("express");
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
 const router = express.Router();
-const car = require("../models/car.model");
-const m = require("../helpers/middlewares");
-const path = require('path');
+const user = require('../models/user.model');
+const m = require('../helpers/middlewares');
+const db = require('../db');
 
 
-/* All cars */
-router.get("/", async(req, res) => {
 
-    const status = req.query.status;
-    const min_price = req.query.min_price;
-    const max_price = req.query.max_price;
 
-    if (status === "available") {
+/* Create user account * Andela */
+router.post('/auth/signup',  async (req, res) => {
+  const {email, name, password } = req.body;
+  // const hash = bcrypt.hashSync(password);
+  const saltRounds = 10;
 
-        /* View all unsold cars within a price range * Andela */
+  bcrypt.hash(password, saltRounds, function(err, hash) {
+    db('login').insert({
+      email: email,
+      password: hash
+    })
+    return  res.json({
+      status: 201,
+      data: req.body
+    })
+    .catch(err => res.status(500).json({
+      status: 500,
+      error: {
+        message: err.message,
+      },
+    }));
+  });
 
-        if (min_price && max_price) {
+});
+  //       .into('login')
+  //       .returnung('email')
+  //       .then(loginEmail => {
+  //         return trx('users')
+  //             .returning('*')
+  //             .insert(req.body)
+  //             .then(user => {
+  //               res.json(user[0]);
+  //             })
+  //       })
 
-            await car.viewAllUnsoldWithinAPriceRange(status, min_price, max_price)
-                .then(car => res.status(200).json({
-                    status: 200,
-                    data: car
-                }))
-                .catch(err => res.status(500).json({
-                    message: err.message
-                }))
 
-        } else {
 
-            /* View all unsold cars * Andela */
+/* Login a user * Andela */
+router.post('/auth/signin', m.checkLoginForm, async (req, res) => {
+  const { email } = req.body;
+  const { password } = req.body;
 
-            await car.viewAllUnsold(status)
-                .then(car => res.status(200).json({
-                    status: 200,
-                    data: car
-                }))
-                .catch(err => res.status(500).json({
-                    message: err.message
-                }))
-        }
-
-    } else {
-
-        await car.getCars()
-            .then(cars => res.json(cars))
-            .catch(err => {
-                if (err.status) {
-                    res.status(err.status).json({
-                        message: err.message
-                    })
-                } else {
-                    res.status(500).json({
-                        message: err.message
-                    })
-                }
-            })
-    }
+  await user.loginUser(email, password)
+    .then(user => res.status(200).json({
+      status: 200,
+      data: user,
+    }))
+    .catch((err) => {
+      res.status(401).json({
+        status: 401,
+        error: {
+          message: 'Invalid id and password',
+        },
+      });
+    });
 });
 
 
-/* Mark a posted car Ad as sold * Andela */
-router.patch("/:id/status", m.mustBeInteger, async(req, res) => {
-    const id = req.params.id;
-    const status = req.body.status;
+/* Update a user */
+router.put('/:id', m.mustBeInteger, m.checkFieldPostUser, async (req, res) => {
+  const { id } = req.params;
 
-    await car.updateStatus(id, status)
-        .then(car => res.status(202).json({
-            status: 202,
-            data: car
-        }))
-        .catch()
+  await user.updateUser(id, req.body)
+    .then(user => res.json({
+      message: `User #${id} has been updated`,
+      content: user,
+    }))
+    .catch((err) => {
+      if (err.status) {
+        res.status(err.status).json({
+          message: err.message,
+        });
+      }
+      res.status(500).json({
+        message: err.message,
+      });
+    });
 });
 
 
-/* Update the price of a car * Andela */
-router.patch("/:id/price", m.mustBeInteger, async(req, res) => {
-    const id = req.params.id;
-    const price = req.body.price;
-
-    await car.updatePrice(id, price)
-        .then(car => res.status(202).json({
-            status: 202,
-            data: car
-        }))
-        .catch()
-});
-
-
-/* Insert a new car */
-router.post("/", m.checkFieldPostCar, async(req, res) => {
-    await car.insertCar(req.body)
-        .then(car => res.status(201).json({
-            message: `Car #${car.id} has been created`,
-            content: car
-        }))
-        .catch(err => res.status(500).json({
-            message: err.message
-        }))
-});
-
-/* Delete a car */
+/* Delete a user */
 router.delete('/:id', m.mustBeInteger, async (req, res) => {
-    const id = req.params.id;
+  const { id } = req.params;
 
-    await car.deleteCar(id)
-        .then(car => res.json({
-            message: `The car #${id} has been deleted`,
-            status: "OK"
-        }))
-        .catch(err => {
-            if (err.status) {
-                res.status(err.status).json({
-                    message: err.message
-                })
-            }
-            res.status(500).json({
-                message: err.message
-            })
-        })
+  await user.deleteUser(id)
+    .then(user => res.json({
+      message: `User #${id} has been deleted`,
+      status: 'OK',
+    }))
+    .catch((err) => {
+      if (err.status) {
+        res.status(err.status).json({
+          message: err.message,
+        });
+      }
+      res.status(500).json({
+        message: err.message,
+      });
+    });
 });
 
-/* Update a car */
-router.put('/:id', m.mustBeInteger, m.checkFieldPostCar, async (req, res) => {
-
-    const id = req.params.id;
-
-    await car.updateCar(id, req.body)
-        .then(car => res.json({
-            message: `Car #${id} has been updated`,
-            content: car
-        }))
-        .catch(err => {
-            if (err.status) {
-                res.status(err.status).json({
-                    message: err.message
-                })
-            }
-            res.status(500).json({
-                message: err.message
-            })
-        })
+// new
+router.post('/signup', (req, res) => {
+  bcrypt.hash(req.body.password, 10, function(err, hash){
+    if(err) {
+      return res.status(500).json({
+        error: err
+      });
+    }
+    else {
+      // const user = new User({
+      //   _id: new  mongoose.Types.ObjectId(),
+      //   email: req.body.email,
+      //   password: hash
+      // });
+      // user.save()
+      db('users').insert(req.body)
+        .then(function(result) {
+        console.log(result);
+        res.status(200).json({
+          success: 'New user has been created'
+        });
+      }).catch(error => {
+        res.status(500).json({
+          error: err
+        });
+      });
+    }
+  });
 });
-
-/* View a specific car * Andela */
-router.get("/:id", m.mustBeInteger, async(req, res) => {
-
-    const id = req.params.id;
-
-    await car.getCar(id)
-        .then(car => res.json(car))
-        .catch(err => {
-            if (err.status) {
-                res.status(err.status).json({
-                    message: err.message
-                })
-            } else {
-                res.status(500).json({
-                    message: err.message
-                })
-            }
-        })
-});
-
 
 // Routes
 module.exports = router;
