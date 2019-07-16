@@ -2,83 +2,112 @@ const express = require("express");
 const router = express.Router();
 const car = require("../models/car.model");
 const m = require("../helpers/middlewares");
-const helper = require("../helpers/helper");
 const path = require('path');
-const db = require('../db');
 
 
-const joi = require('@hapi/joi');
+/* All cars */
+router.get("/", async(req, res) => {
+
+    const status = req.query.status;
+    const min_price = req.query.min_price;
+    const max_price = req.query.max_price;
+
+    if (status === "available") {
+
+        /* View all unsold cars within a price range * Andela */
+
+        if (min_price && max_price) {
+
+            await car.viewAllUnsoldWithinAPriceRange(status, min_price, max_price)
+                .then(car => res.status(200).json({
+                    status: 200,
+                    data: car
+                }))
+                .catch(err => res.status(500).json({
+                    message: err.message
+                }))
+
+        } else {
+
+            /* View all unsold cars * Andela */
+
+            await car.viewAllUnsold(status)
+                .then(car => res.status(200).json({
+                    status: 200,
+                    data: car
+                }))
+                .catch(err => res.status(500).json({
+                    message: err.message
+                }))
+        }
+
+    } else {
+
+        await car.getCars()
+            .then(cars => res.json(cars))
+            .catch(err => {
+                if (err.status) {
+                    res.status(err.status).json({
+                        message: err.message
+                    })
+                } else {
+                    res.status(500).json({
+                        message: err.message
+                    })
+                }
+            })
+    }
+});
+
 
 /* Mark a posted car Ad as sold * Andela */
 router.patch("/:id/status", m.mustBeInteger, async(req, res) => {
-     const id = req.params.id;
-     const status = req.body;
-    // postgres db
-    db('cars')
-    .where({
-        'id' : id
-    })
-    .update(status)
-    .returning('*')
-    //    then()
-    .then(car => res.status(202).json({
-        status: 202,
-        data: car
-    }))
-    // .catch()
-    .catch(err => res.status(500).json({
-        message: err.message
-    }))
+    const id = req.params.id;
+    const status = req.body.status;
+
+    await car.updateStatus(id, status)
+        .then(car => res.status(202).json({
+            status: 202,
+            data: car
+        }))
+        .catch()
 });
 
 
 /* Update the price of a car * Andela */
 router.patch("/:id/price", m.mustBeInteger, async(req, res) => {
     const id = req.params.id;
-    const price = req.body;
+    const price = req.body.price;
 
-    // postgres db
-    db('cars')
-        .where({
-            'id' : id
-        })
-        .update(price)
-        .returning('*')
-        //    then function
+    await car.updatePrice(id, price)
         .then(car => res.status(202).json({
             status: 202,
             data: car
         }))
-        // .catch()
+        .catch()
+});
+
+
+/* Insert a new car */
+router.post("/", m.checkFieldPostCar, async(req, res) => {
+    await car.insertCar(req.body)
+        .then(car => res.status(201).json({
+            message: `Car #${car.id} has been created`,
+            content: car
+        }))
         .catch(err => res.status(500).json({
             message: err.message
         }))
 });
-
-// /* Insert a new car */
-router.post('/', m.checkFieldPostCar, async(req, res) => {
-        db('cars')
-        .insert(req.body)
-        .returning('*')
-        .then(cars => res.status(201).json({
-             message: `car  has been created`,
-             content: cars
-         }))
-        .catch(err => res.status(500).json({
-            message: err.message
-        }))
-});
-
 
 /* Delete a car */
 router.delete('/:id', m.mustBeInteger, async (req, res) => {
     const id = req.params.id;
-        db('cars')
-        .where('id',id)
-        .del()
+
+    await car.deleteCar(id)
         .then(car => res.json({
             message: `The car #${id} has been deleted`,
-            status: "Car Ad successfully deleted"
+            status: "OK"
         }))
         .catch(err => {
             if (err.status) {
@@ -118,12 +147,8 @@ router.put('/:id', m.mustBeInteger, m.checkFieldPostCar, async (req, res) => {
 router.get("/:id", m.mustBeInteger, async(req, res) => {
 
     const id = req.params.id;
-    db.select('*')
-        .from('cars')
-        .where({
-            id:id,
-         })
-        .select('id')
+
+    await car.getCar(id)
         .then(car => res.json(car))
         .catch(err => {
             if (err.status) {
@@ -136,63 +161,6 @@ router.get("/:id", m.mustBeInteger, async(req, res) => {
                 })
             }
         })
-});
-
-/* All cars */
-router.get("/", async(req, res) => {
-
-    const status = req.query.status;
-    const min_price = req.query.min_price;
-    const max_price = req.query.max_price;
-
-
-        /* View all unsold cars within a price range * Andela */
-
-        if ( status === "available" && min_price && max_price) {
-            const subquery = db('cars').where('price', '>', 10)
-                .andWhere('price', '<','100').select('id');
-
-            await db('cars').where('id', 'in', subquery)
-                .andWhere('status', 'available')
-                .then(subquery => res.status(200).json({
-                    status: 200,
-                    data: subquery
-                }))
-                .catch(err => res.status(500).json({
-                    message: err.message
-                }))
-
-        } else {
-
-            /* View all unsold cars * Andela */
-
-           await db('cars').where('status', 'available')
-                .then(car => res.status(200).json({
-                    status: 200,
-                    data: car
-                }))
-                .catch(err => res.status(500).json({
-                    message: err.message
-                }))
-        }
-
-
-
-});
-
-
-
-
-/* All cars */
-router.get("/", async(req, res) => {
-    db.select('*').from('cars')
-        .then(car => res.status(200).json({
-            status: 200,
-            data: car
-        }))
-        .catch(err => res.status(500).json({
-            message: err.message
-        }))
 });
 
 
